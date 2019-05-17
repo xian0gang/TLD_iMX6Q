@@ -809,6 +809,7 @@ void* socket_process(void *ptr)
 					perror("select return failed!\n");
 					isconnect = 0;
 				default:
+                    //接收数据处理
 					if(FD_ISSET(socketCon, &readfds) > 0)
 					{
 						memset(buffer, 0, MAX_TEXT);
@@ -920,6 +921,27 @@ void* socket_process(void *ptr)
 							
 							}
 							
+                            if((buffer[0] == 0x68) && buffer[2] == 0x68)
+                            {
+                                if(buffer[3] == 0x05)
+                                {
+//                                    unsigned char ACK[11] = {1};
+                                    unsigned char ACK[11] = {2};
+                                    write(UART3_fd, ACK, 11);
+                                    printf("kejianguang\n");
+                                    VPU_Capture_Resolution = 1080;
+                                    quitflag = 1;
+                                }
+                                else if(buffer[3] == 0x06)
+                                {
+//                                    unsigned char ACK[11] = {0};
+                                    unsigned char ACK[11] = {2};
+                                    write(UART3_fd, ACK, 11);
+                                    printf("kejianguang\n");
+                                    VPU_Capture_Resolution = 576;
+                                    quitflag = 1;
+                                }
+                            }
 							data.msg_type = 1;
 							memcpy(data.text, buffer, readlen); 
 							msgsnd(msgid, (void*)&data, MAX_TEXT, 0);

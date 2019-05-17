@@ -150,38 +150,44 @@ void VPU_Input_Init(unsigned short resolution, unsigned char VPU_Format)
 	}
 	else if(VPU_Camera_Resolution == 512)
 	{
-		VPU_Camera_FPS = 30;
+		
+VPU_Camera_FPS = 30;
 		VPU_Camera_WIDTH = 640;
 		VPU_Camera_HEIGHT = 512;
 	}
 	else if(VPU_Camera_Resolution == 576)
 	{
-		VPU_Camera_FPS = 30;
+		
+VPU_Camera_FPS = 30;
 		VPU_Camera_WIDTH = 720;
 		VPU_Camera_HEIGHT = 576;
 	}
 	else if(VPU_Camera_Resolution == 544)
 	{
-		VPU_Camera_FPS = 30;
+		
+VPU_Camera_FPS = 30;
 		VPU_Camera_WIDTH = 960;
 		VPU_Camera_HEIGHT = 544;
 	}
 	else if(VPU_Camera_Resolution == 480)
 	{
-		VPU_Camera_FPS = 30;
+		
+VPU_Camera_FPS = 30;
 		VPU_Camera_WIDTH = 640;
 		VPU_Camera_HEIGHT = 480;
 	}
 	else if(VPU_Camera_Resolution == 720)
 	{
-		VPU_Camera_FPS = 30;
+		
+VPU_Camera_FPS = 30;
 		VPU_Camera_WIDTH = 1280;
 		VPU_Camera_HEIGHT = 720;
 	}
 	else// VPU_Camera_Resolution默认720*576
 	{
 		printf("没有设置图像分辨率，默认720*576!\n");
-		VPU_Camera_FPS = 30;
+		
+VPU_Camera_FPS = 30;
 		VPU_Camera_WIDTH = 720;
 		VPU_Camera_HEIGHT = 576;
 	}	
@@ -198,13 +204,16 @@ int VPU_camera(unsigned short resolution, unsigned char VPU_Format)
 {
 	VPU_Init();
 	VPU_Input_Init(resolution,VPU_Format);
-	
+    #if 0
 	//pthread_create(&VPU_Camera_Enc.tid,NULL,(void *)&encode_test,(void *)&VPU_Camera_Enc.cmd);
 	pthread_create(&VPU_Camera_Enc.tid,NULL, encode_test, (void *)&VPU_Camera_Enc.cmd);//g++ : 'void*' to 'void* (*)(void*)'
 		
 	if (VPU_Camera_Enc.tid != 0)
 		pthread_join(VPU_Camera_Enc.tid, NULL);
-	
+#else
+    encode_test(&VPU_Camera_Enc.cmd);
+#endif
+    vpu_UnInit();
 	return 1;         
 }
 

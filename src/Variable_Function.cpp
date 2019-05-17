@@ -646,10 +646,15 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
                 }           
             }
 
-            //当搜索框中心变化时，重新计算检测出的目标框中心相对位置
+            //当 搜索框中心 变化时，重新计算检测出的 目标框中心 相对位置
             relDistanceX = (CCD_IR_Target_x - 16) - (CCD_IR_Detect_x - 64);
             relDistanceY = (CCD_IR_Target_y - 16) - (CCD_IR_Detect_y - 64);
 		}
+        else
+        {
+            relDistanceX = 0;
+            relDistanceY = 0;
+        }
 		//memcpy(capture_buffers[capture_buf.index].start, current_gray.data, WIDTH*HEIGHT); 
 		swap(last_gray, current_gray);
 		pts2.clear();
