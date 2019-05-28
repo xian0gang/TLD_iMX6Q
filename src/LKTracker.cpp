@@ -28,7 +28,7 @@ bool LKTracker::trackf2f(const Mat& img1, const Mat& img2,vector<Point2f> &point
 	calcOpticalFlowPyrLK( img1,img2, points1, points2, status,similarity, window_size, level, term_criteria, lambda, 0);
 	    
 	t=(double)getTickCount()-t;
-    	printf("xiangang->calcOpticalFlowPyrLK %gms\n", t*1000/getTickFrequency());
+        DEBLOG("xiangang->calcOpticalFlowPyrLK %gms\n", t*1000/getTickFrequency());
 
 	//backward trajectory 后向轨迹跟踪
 	calcOpticalFlowPyrLK( img2,img1, points2, pointsFB, FB_status,FB_error, window_size, level, term_criteria, lambda, 0);
@@ -71,7 +71,7 @@ void LKTracker::normCrossCorrelation(const Mat& img1,const Mat& img2, vector<Poi
 
             float ma = myTemplateMatch(&rec0, &rec1, 2);
 //            matchTemplate( rec0,rec1, res, CV_TM_CCOEFF_NORMED);
-//            printf("matchTemplate:%f, ma:%f\n", ((float *)(res.data))[0], ma);
+//            DEBLOG("matchTemplate:%f, ma:%f\n", ((float *)(res.data))[0], ma);
 //            similarity[i] = ((float *)(res.data))[0];//得到各个特征点的相似度大小
             similarity[i] = ma;
 

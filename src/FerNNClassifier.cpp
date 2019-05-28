@@ -171,7 +171,7 @@ void FerNNClassifier::trainNN(const vector<cv::Mat>& nn_examples)
       }
   }                                                                 //  end
   acum++;
-  printf("%d. Trained NN examples: %d positive %d negative\n",acum,(int)pEx.size(),(int)nEx.size());
+  DEBLOG("%d. Trained NN examples: %d positive %d negative\n",acum,(int)pEx.size(),(int)nEx.size());
 }                                                                  //  end
 
 
@@ -206,7 +206,7 @@ void FerNNClassifier::NNConf(const Mat& example, vector<int>& isin,float& rsconf
 //      nccP=(((float*)ncc.data)[0]+1)*0.5;
       float ma = myTemplateMatch(&example, &pEx[i], 1);
       nccP = (ma + 1) * 0.5;
-//      printf("matchTemplate:%f ma:%f\n",((float*)ncc.data)[0], ma);
+//      DEBLOG("matchTemplate:%f ma:%f\n",((float*)ncc.data)[0], ma);
       if (nccP>ncc_thesame)
         anyP=true;
       if(nccP > maxP){

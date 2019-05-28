@@ -4,11 +4,12 @@
 using namespace cv;
 using namespace std;
 
-//#define __DEBUG__
-#ifdef __DEBUG__
-#define DEBUG(format,...) printf("File: "__FILE__", Line: %05d: "format"/n", __LINE__, ##__VA_ARGS__)
+#define _DEBUG_ 0
+
+#if _DEBUG_
+#define DEBLOG(...) printf(__VA_ARGS__)
 #else
-#define DEBUG(format,...)
+#define DEBLOG(...)
 #endif
 
 void drawBox(cv::Mat& image, CvRect box, cv::Scalar color = cvScalarAll(255), int thick=1); 

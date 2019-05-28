@@ -89,6 +89,8 @@ pthread_t socket_tid;
 //********************标志位&变量**************************
 unsigned char Track_Begin_Flag = 0;
 int init_tld = 0;
+int init_canshift = 0;
+int init_ncc = 0;
 
 volatile unsigned char Frame_Process_Begin_Flag = 0;
 volatile unsigned char Frame_Process_End_Flag = 1;
@@ -131,8 +133,7 @@ extern unsigned char *inbuf ;
 extern void *outbuf ;
 //**********************************************************
 //QS跟踪器  _目标框*******************************************
-extern QSRECT rcInit;
-
+extern QSRECT rcInit_init;
 //处理函数
 //**********************************************************
 
@@ -178,37 +179,48 @@ void* tracking_process(void *ptr)
 					{
 						NCC_IMAGE_TRACK(Frame_Num_Track);
 						Frame_Num_Track++;
+                        if(init_ncc)
+                        {
+                            Frame_Num_Track = 0;
+                            init_ncc = 0;
+                        }
 						if(Frame_Num_Track >= 100)
 							Frame_Num_Track = 10;
 					}
-					else
-						Frame_Num_Track = 0;
+//					else
+//						Frame_Num_Track = 0;
 	
 					break;
 
 				case QSImage_Algorithm_Track://1
 					if(Track_Begin_Flag == 1)
 					{
+
 						QS_IMAGE_TRACK(Frame_Num_Track);
 						Frame_Num_Track++;
+                        if(init_canshift)
+                        {
+                            Frame_Num_Track = 0;
+                            init_canshift = 0;
+                        }
 						if(Frame_Num_Track >= 100)
 							Frame_Num_Track = 10;
 					}
-					else
-						Frame_Num_Track = 0;
+//                    else
+//                        Frame_Num_Track = 0;
 
 					break;	
 					
 				case TLD_Algorithm_Track: //2
                     if(Track_Begin_Flag == 1)
                     {
+						TLD_IMAGE_TRACK(Frame_Num_Track);
+						Frame_Num_Track++;
                         if(init_tld)
                         {
                             Frame_Num_Track = 0;
                             init_tld = 0;
                         }
-						TLD_IMAGE_TRACK(Frame_Num_Track);
-						Frame_Num_Track++;
 						if(Frame_Num_Track >= 100)
 							Frame_Num_Track = 10;
                     }
@@ -754,6 +766,9 @@ void* socket_process(void *ptr)
 	int msgid = -1;  
 	int msgid2 = -1;//*((int *)msg_fd);
 
+    int center_x;
+    int center_y;
+
 	while(1)
 	{		
 		printf("开始socket\n");  
@@ -849,7 +864,7 @@ void* socket_process(void *ptr)
 								printf("tar_x1 = %d ,tar_y1 = %d, tar_x2 = %d, tar_y2 = %d \n",tar_x1,tar_y1,tar_x2,tar_y2);
 								if(buffer[3] == 1)//跟踪框
 								{
-									if((tar_x1!=rcInit.left)||(tar_y1!=rcInit.top)||(tar_x2!=rcInit.right)||(tar_y2!=rcInit.bottom))
+//									if((tar_x1!=rcInit.left)||(tar_y1!=rcInit.top)||(tar_x2!=rcInit.right)||(tar_y2!=rcInit.bottom))
 									{
 										if((tar_x1+5<tar_x2)&&(tar_y1+5<tar_y2))
 										{
@@ -858,20 +873,26 @@ void* socket_process(void *ptr)
 											{
 												//NCC***********************************************
 												case NCC_Algorithm_Track:        
-													    usleep(40000);          //等待跟踪算法结束，保持在手动状态
-														Rec_Target_x = (tar_x1+tar_x2)/2;
+
+                                                        usleep(40000);          //等待跟踪算法结束，保持在手动状态
+                                                        init_ncc = 1;
+                                                        Rec_Target_x = (tar_x1+tar_x2)/2;
 														Rec_Target_y = (tar_y1+tar_y2)/2;
 														printf("Rec_Target_x = %d ,Rec_Target_y = %d ******\n",Rec_Target_x,Rec_Target_y);
 													break;
 													
 													//QS********************************************
 												case QSImage_Algorithm_Track:
-														usleep(40000);          //等待跟踪算法结束，保持在手动状态
-														qsObjectTrackStop();	 //停止跟踪器
-														rcInit.left = tar_x1;	 //选中区域
-														rcInit.right = tar_x2;
-														rcInit.top = tar_y1;
-														rcInit.bottom = tar_y2;
+
+//                                                        usleep(40000);          //等待跟踪算法结束，保持在手动状态
+//														qsObjectTrackStop();	 //停止跟踪器
+                                                        init_canshift = 1;
+                                                        center_x  = (tar_x1+tar_x2)/2;
+                                                        center_y  = (tar_y1+tar_y2)/2;
+                                                        rcInit_init.left   = center_x - 16;	 //选中区域
+                                                        rcInit_init.right  = center_x + 16;
+                                                        rcInit_init.top    = center_y - 16;
+                                                        rcInit_init.bottom = center_y + 16;
 													break;
 													
 													//TLD********************************************
@@ -926,17 +947,17 @@ void* socket_process(void *ptr)
                                 if(buffer[3] == 0x05)
                                 {
 //                                    unsigned char ACK[11] = {1};
-                                    unsigned char ACK[11] = {2};
-                                    write(UART3_fd, ACK, 11);
+//                                    unsigned char ACK[11] = {2};
+//                                    write(UART3_fd, ACK, 11);
                                     printf("kejianguang\n");
-                                    VPU_Capture_Resolution = 1080;
+                                    VPU_Capture_Resolution = 544;
                                     quitflag = 1;
                                 }
                                 else if(buffer[3] == 0x06)
                                 {
 //                                    unsigned char ACK[11] = {0};
-                                    unsigned char ACK[11] = {2};
-                                    write(UART3_fd, ACK, 11);
+//                                    unsigned char ACK[11] = {2};
+//                                    write(UART3_fd, ACK, 11);
                                     printf("kejianguang\n");
                                     VPU_Capture_Resolution = 576;
                                     quitflag = 1;
@@ -963,15 +984,15 @@ int main(int argc, char **argv)
 	
 		
 //初始化各个模块设备************************************************			
-	if(Uart_Init(&UART1_fd, "/dev/ttymxc1", 115200) < 0) //串口1初始化	
-	{
-		exit(1);
-	}
+//	if(Uart_Init(&UART1_fd, "/dev/ttymxc1", 115200) < 0) //串口1初始化
+//	{
+//		exit(1);
+//	}
 
-	if(Uart_Init(&UART2_fd, "/dev/ttymxc2", 115200) < 0) //串口2初始化	
-	{
-		exit(1);
-	}
+//	if(Uart_Init(&UART2_fd, "/dev/ttymxc2", 115200) < 0) //串口2初始化
+//	{
+//		exit(1);
+//	}
 	
 	if(Uart_Init(&UART3_fd, "/dev/ttymxc3", 115200) < 0) //串口3初始化	
 	{
@@ -979,7 +1000,7 @@ int main(int argc, char **argv)
 	}
 
 //*************************************************切换视频********
-#if 1
+#if 0
 	int i;
 	unsigned char ACK[11] = {0,1,2,3,4,5,6,7,8,9,10};
 	for(i=0; i<11; i++)

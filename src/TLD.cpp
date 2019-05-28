@@ -92,7 +92,7 @@ bool detected;
 
 void clearr()
 {
-    printf("clear start\n");
+    DEBLOG("clear start\n");
 	pX.clear();
 	nX.clear();
 	nXT.clear();
@@ -105,7 +105,7 @@ void clearr()
 	good_boxes.clear();
 	bad_boxes.clear();
     classifier.clear();
-    printf("clear over\n");
+    DEBLOG("clear over\n");
 }
 
 
@@ -187,7 +187,7 @@ void  *pth_test(void *tt)
     CPU_SET(core_no,&cpuset);
     s = pthread_setaffinity_np(thread,sizeof(cpuset),&cpuset);
     if(s != 0)
-        printf("Set pthread_setaffinity_npfailed\n");
+        DEBLOG("Set pthread_setaffinity_npfailed\n");
 
     int count = 0;
     while(Pth_destory_Flag)
@@ -200,13 +200,13 @@ void  *pth_test(void *tt)
         double t = (double)getTickCount();
         detect(dec_mat);
         t=(double)getTickCount()-t;
-        printf("xiangang----------------------------------->detect Run-time: %gms\n", t*1000/getTickFrequency());
+        DEBLOG("xiangang----------------------------------->detect Run-time: %gms\n", t*1000/getTickFrequency());
 
         data_cond.notify_one();
         isdetect = false;
         lk.unlock();
     }
-	printf("**************************************************destory pth_test\n");
+    DEBLOG("**************************************************destory pth_test\n");
 }
 
 //detect检测模块显存封装函数
@@ -227,7 +227,7 @@ void  *pth_det2(void *tt)
     CPU_SET(core_no,&cpuset);
     s = pthread_setaffinity_np(thread,sizeof(cpuset),&cpuset);
     if(s != 0)
-        printf("Set pthread_setaffinity_npfailed\n");
+        DEBLOG("Set pthread_setaffinity_npfailed\n");
 
 
     // DetStruct dtt;    
@@ -277,7 +277,7 @@ void  *pth_det2(void *tt)
             isdetect2 = false;
             lk2.unlock();
         }
-		printf("**************************************************destory pth_test2\n");
+        DEBLOG("**************************************************destory pth_test2\n");
 		
 }
 
@@ -298,7 +298,7 @@ void  *pth_det3(void *tt)
     CPU_SET(core_no,&cpuset);
     s = pthread_setaffinity_np(thread,sizeof(cpuset),&cpuset);
     if(s != 0)
-        printf("Set pthread_setaffinity_npfailed\n");
+        DEBLOG("Set pthread_setaffinity_npfailed\n");
 
     DetStruct dtt4;    
     dtt4.patt = vector<vector<int> >(1,vector<int>(10,0));        //  Corresponding codes of the Ensemble Classifier
@@ -345,7 +345,7 @@ void  *pth_det3(void *tt)
             isdetect3 = false;
             lk3.unlock();
         }
-		printf("**************************************************destory pth_test3\n");
+        DEBLOG("**************************************************destory pth_test3\n");
 }
 
 int detect_d3()
@@ -366,19 +366,19 @@ void  *pth_det4(void *tt)
     CPU_SET(core_no,&cpuset);
     s = pthread_setaffinity_np(thread,sizeof(cpuset),&cpuset);
     if(s != 0)
-        printf("Set pthread_setaffinity_npfailed\n");
+        DEBLOG("Set pthread_setaffinity_npfailed\n");
 
-    printf("pth_det4......\n");
+    DEBLOG("pth_det4......\n");
         while(Pth_destory_Flag)
         {
 //lock
             std::unique_lock<std::mutex> lk4(mut_det4);
-//            printf("pth_det4 wait......\n");
+//            DEBLOG("pth_det4 wait......\n");
             data_cond_det4.wait(lk4, []{return isdetect4;});
             isdetect4 = false;
             lk4.unlock();
 // main
-            //        printf("pth_grid1 start while......\n");
+            //        DEBLOG("pth_grid1 start while......\n");
             float conf;
             Mat patch;
             int numtrees = classifier.getNumStructs();
@@ -410,7 +410,7 @@ void  *pth_det4(void *tt)
             }
 
            t=(double)getTickCount() - t;
-           printf("xiangang----------------------------------->detect2 grid-time: %gms\n", t*1000/getTickFrequency());
+           DEBLOG("xiangang----------------------------------->detect2 grid-time: %gms\n", t*1000/getTickFrequency());
 
 
             std::unique_lock<std::mutex> lk4_4(mut_det4_4);
@@ -421,7 +421,7 @@ void  *pth_det4(void *tt)
 
         }
 
-		printf("**************************************************destory pth_test4\n");
+        DEBLOG("**************************************************destory pth_test4\n");
 }
 
 int detect_d4()
@@ -589,7 +589,7 @@ void init(const Mat& frame1,const Rect& box,FILE* bb_file)
   classifier.evaluateTh(nXT,nExT);
 
   t=(double)getTickCount()-t;
-  printf("xiangang----------------------------------->init Run-time: %gms\n", t*1000/getTickFrequency());
+  DEBLOG("xiangang----------------------------------->init Run-time: %gms\n", t*1000/getTickFrequency());
 }
 
 /* Generate Positive data
@@ -631,7 +631,7 @@ void generatePositiveData(const Mat& frame, int num_warps)
             pX.push_back(make_pair(fern,1));
         }
     }
-    printf("Positive examples generated: ferns:%d NN:1\n",(int)pX.size());
+    DEBLOG("Positive examples generated: ferns:%d NN:1\n",(int)pX.size());
 }
 
 inline void getPattern(const Mat& img, Mat& pattern,Scalar& mean,Scalar& stdev)
@@ -657,7 +657,7 @@ void generateNegativeData(const Mat& frame)
     //Get Fern Features of the boxes with big variance (calculated using integral images)
     int a=0;
     //int num = std::min((int)bad_boxes.size(),(int)bad_patches*100); //limits the size of bad_boxes to try
-    printf("negative data generation started.\n");
+    DEBLOG("negative data generation started.\n");
     vector<int> fern(classifier.getNumStructs());
     nX.reserve(bad_boxes.size());
     Mat patch;
@@ -671,7 +671,7 @@ void generateNegativeData(const Mat& frame)
         nX.push_back(make_pair(fern,0));
         a++;
     }
-    printf("Negative examples generated: ferns: %d ",a);
+    DEBLOG("Negative examples generated: ferns: %d ",a);
     //random_shuffle(bad_boxes.begin(),bad_boxes.begin()+bad_patches);//Randomly selects 'bad_patches' and get the patterns for NN;
     Scalar dum1, dum2;
     nEx=vector<Mat>(bad_patches);
@@ -681,7 +681,7 @@ void generateNegativeData(const Mat& frame)
         patch = frame(grid[idx]);
         getPattern(patch,nEx[i],dum1,dum2);
     }
-    printf("NN: %d\n",(int)nEx.size());
+    DEBLOG("NN: %d\n",(int)nEx.size());
 }
 
 int getVar(const BoundingBox& box,const Mat& sum,const Mat& sqsum)
@@ -732,7 +732,7 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
         double t = (double)getTickCount();
         track(re_img1,dec_mat,points1,points2);
         t=(double)getTickCount()-t;
-        printf("xiangang----------------------------------->track Run-time: %gms\n", t*1000/getTickFrequency());
+        DEBLOG("xiangang----------------------------------->track Run-time: %gms\n", t*1000/getTickFrequency());
     }
     else
     {
@@ -752,11 +752,11 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
         bbnext=tbb;
     	lastconf=tconf; //表示相关相似度的阈值
     	lastvalid=tvalid;
-    	printf("Tracked\n");
+        DEBLOG("Tracked\n");
     	if(detected)
     	{                                               //   if Detected
     		clusterConf(dbb,dconf,cbb,cconf);                       //   cluster detections
-    		printf("Found %d clusters\n",(int)cbb.size());
+            DEBLOG("Found %d clusters\n",(int)cbb.size());
     		for (int i=0;i<cbb.size();i++)
     		{
     			if (bbOverlap(tbb,cbb[i])<0.5 && cconf[i]>tconf)
@@ -767,14 +767,14 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     		}
     		if (confident_detections==1)
     		{                                //if there is ONE such a cluster, re-initialize the tracker
-    			printf("Found a better match..reinitializing tracking\n");
+                DEBLOG("Found a better match..reinitializing tracking\n");
     			bbnext=cbb[didx];
     			lastconf=cconf[didx];
     			lastvalid=false;
     		}
     		else
     		{
-    			printf("%d confident cluster was found\n",confident_detections);
+                DEBLOG("%d confident cluster was found\n",confident_detections);
     			int cx=0,cy=0,cw=0,ch=0;
     			int close_detections=0;
     			for (int i=0;i<dbb.size();i++)
@@ -786,7 +786,7 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     				  cw += dbb[i].width;
     				  ch += dbb[i].height;
     				  close_detections++;
-    				  printf("weighted detection: %d %d %d %d\n",dbb[i].x,dbb[i].y,dbb[i].width,dbb[i].height);
+                      DEBLOG("weighted detection: %d %d %d %d\n",dbb[i].x,dbb[i].y,dbb[i].width,dbb[i].height);
     				}
     			}
     			if (close_detections>0)
@@ -797,13 +797,13 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     				bbnext.y = cvRound((float)(10*tbb.y+cy)/(float)(10+close_detections));
     				bbnext.width = cvRound((float)(10*tbb.width+cw)/(float)(10+close_detections));
     				bbnext.height =  cvRound((float)(10*tbb.height+ch)/(float)(10+close_detections));
-    				printf("Tracker bb: %d %d %d %d\n",tbb.x,tbb.y,tbb.width,tbb.height);
-    				printf("Average bb: %d %d %d %d\n",bbnext.x,bbnext.y,bbnext.width,bbnext.height);
-    				printf("Weighting %d close detection(s) with tracker..\n",close_detections);
+                    DEBLOG("Tracker bb: %d %d %d %d\n",tbb.x,tbb.y,tbb.width,tbb.height);
+                    DEBLOG("Average bb: %d %d %d %d\n",bbnext.x,bbnext.y,bbnext.width,bbnext.height);
+                    DEBLOG("Weighting %d close detection(s) with tracker..\n",close_detections);
     			}
     			else
     			{
-    				printf("%d close detections were found\n",close_detections);
+                    DEBLOG("%d close detections were found\n",close_detections);
 
     			}
     		}
@@ -811,7 +811,7 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     }
     else  //   If NOT tracking
     {                                       //   If NOT tracking
-    	printf("Not tracking..\n");
+        DEBLOG("Not tracking..\n");
     	lastboxfound = false;
     	lastvalid = false;
     	 //如果跟踪器没有跟踪到目标，但是检测器检测到了一些可能的目标box，那么同样对其进行聚类，但只是简单的
@@ -819,21 +819,21 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     	if(detected)
     	{                           //  and detector is defined
     		clusterConf(dbb,dconf,cbb,cconf);   //  cluster detections
-    		printf("Found %d clusters\n",(int)cbb.size());
+            DEBLOG("Found %d clusters\n",(int)cbb.size());
     		if (cconf.size()==1)
     		{
     			bbnext=cbb[0];
     			lastconf=cconf[0];
-    			printf("Confident detection..reinitializing tracker\n");
+                DEBLOG("Confident detection..reinitializing tracker\n");
     			lastboxfound = true;
     		}
     	}
     }
     lastbox=bbnext;
     // if (lastboxfound)
-    // 	fprintf(bb_file,"%d,%d,%d,%d,%f\n",lastbox.x,lastbox.y,lastbox.br().x,lastbox.br().y,lastconf);
+    // 	fDEBLOG(bb_file,"%d,%d,%d,%d,%f\n",lastbox.x,lastbox.y,lastbox.br().x,lastbox.br().y,lastconf);
     // else
-    // 	fprintf(bb_file,"NaN,NaN,NaN,NaN,NaN\n");
+    // 	fDEBLOG(bb_file,"NaN,NaN,NaN,NaN,NaN\n");
 
 
 
@@ -847,7 +847,7 @@ void processFrame(const cv::Mat& img1,const cv::Mat& img2,vector<Point2f>& point
     }
 
     ptt=(double)getTickCount()-ptt;
-    printf("xiangang----------------------------------->processFrame Run-time: %gms\n", ptt*1000/getTickFrequency());
+    DEBLOG("xiangang----------------------------------->processFrame Run-time: %gms\n", ptt*1000/getTickFrequency());
 }
 
 
@@ -863,7 +863,7 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
 	bbPoints(points1,lastbox);
 	if (points1.size()<1)
 	{
-		printf("BB= %d %d %d %d, Points not generated\n",lastbox.x,lastbox.y,lastbox.width,lastbox.height);
+        DEBLOG("BB= %d %d %d %d, Points not generated\n",lastbox.x,lastbox.y,lastbox.width,lastbox.height);
 		tvalid=false;
 		tracked=false;
 		return;
@@ -888,7 +888,7 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
 		{
 			tvalid =false; //too unstable prediction or bounding box out of image
 			tracked = false;
-			printf("Too unstable predictions FB error=%f\n",tracker.getFB());
+            DEBLOG("Too unstable predictions FB error=%f\n",tracker.getFB());
 			return;
 		}
 
@@ -919,9 +919,9 @@ void track(const Mat& img1, const Mat& img2,vector<Point2f>& points1,vector<Poin
 
 	}
 	else
-		printf("No points tracked\n");
+        DEBLOG("No points tracked\n");
 
-    // printf("xiangang->track->summ:%d\n", summ);
+    // DEBLOG("xiangang->track->summ:%d\n", summ);
 
 }
 
@@ -949,7 +949,7 @@ void bbPredict(const vector<cv::Point2f>& points1,const vector<cv::Point2f>& poi
     int npoints = (int)points1.size();
     vector<float> xoff(npoints);
     vector<float> yoff(npoints);
-    printf("tracked points : %d\n",npoints);
+    DEBLOG("tracked points : %d\n",npoints);
     for (int i=0;i<npoints;i++)
     {
         xoff[i]=points2[i].x-points1[i].x;
@@ -977,12 +977,12 @@ void bbPredict(const vector<cv::Point2f>& points1,const vector<cv::Point2f>& poi
     }
     float s1 = 0.5*(s-1)*bb1.width;
     float s2 = 0.5*(s-1)*bb1.height;
-    printf("s= %f s1= %f s2= %f \n",s,s1,s2);
+    DEBLOG("s= %f s1= %f s2= %f \n",s,s1,s2);
     bb2.x = round( bb1.x + dx -s1);
     bb2.y = round( bb1.y + dy -s2);
     bb2.width = round(bb1.width*s);
     bb2.height = round(bb1.height*s);
-    printf("predicted bb: %d %d %d %d\n",bb2.x,bb2.y,bb2.br().x,bb2.br().y);
+    DEBLOG("predicted bb: %d %d %d %d\n",bb2.x,bb2.y,bb2.br().x,bb2.br().y);
 }
 
 void detect(const cv::Mat& frame)
@@ -1059,7 +1059,7 @@ void detect(const cv::Mat& frame)
 
             classifier.NNConf(dt.patch[i],dt.isin[i],dt.conf1[i],dt.conf2[i]);  //  Evaluate nearest neighbour classifier
 //            dt.patt[i]=tmp.patt[idx];
-            //printf("Testing feature %d, conf:%f isin:(%d|%d|%d)\n",i,dt.conf1[i],dt.isin[i][0],dt.isin[i][1],dt.isin[i][2]);
+            //DEBLOG("Testing feature %d, conf:%f isin:(%d|%d|%d)\n",i,dt.conf1[i],dt.isin[i][0],dt.isin[i][1],dt.isin[i][2]);
 
             if (dt.conf1[i]>nn_th)
             {                                               //  idx = dt.conf1 > tld.model.thr_nn; % get all indexes that made it through the nearest neighbour
@@ -1071,12 +1071,12 @@ void detect(const cv::Mat& frame)
     
     if (dbb.size()>0)
     {
-         printf("xiangang->Found %d NN matches\n",(int)dbb.size());
+         DEBLOG("xiangang->Found %d NN matches\n",(int)dbb.size());
         detected=true;
     }
     else
     {
-         printf("No NN matches found.\n");
+         DEBLOG("No NN matches found.\n");
         detected=false;
     }
 
@@ -1089,7 +1089,7 @@ void evaluate()
 
 void learn(const Mat& img)
 {
-  printf("[Learning] ");
+  DEBLOG("[Learning] ");
   ///Check consistency
   BoundingBox bb;
   bb.x = max(lastbox.x,0);
@@ -1103,17 +1103,17 @@ void learn(const Mat& img)
   float dummy, conf;
   classifier.NNConf(pattern,isin,conf,dummy);
   if (conf<0.5) {
-      printf("Fast change..not training\n");
+      DEBLOG("Fast change..not training\n");
       lastvalid =false;
       return;
   }
   if ((stdev.val[0] * stdev.val[0])<var){
-      printf("Low variance..not training\n");
+      DEBLOG("Low variance..not training\n");
       lastvalid=false;
       return;
   }
   if(isin[2]==1){
-      printf("Patch in negative data..not traing");
+      DEBLOG("Patch in negative data..not traing");
       lastvalid=false;
       return;
   }
@@ -1129,7 +1129,7 @@ void learn(const Mat& img)
     generatePositiveData(img,num_warps_update);
   else{
     lastvalid = false;
-    printf("No good boxes..Not training");
+    DEBLOG("No good boxes..Not training");
     return;
   }
   fern_examples.reserve(pX.size()+bad_boxes.size());
@@ -1186,7 +1186,7 @@ void buildGrid(const cv::Mat& img, const cv::Rect& box)
                 bbox.height = height;
                 bbox.overlap = bbOverlap(bbox,BoundingBox(box));
                 bbox.sidx = sc;
-                // printf("bbox:%d %d %d %d",bbox.x, bbox.y, bbox.width, bbox.height);
+                // DEBLOG("bbox:%d %d %d %d",bbox.x, bbox.y, bbox.width, bbox.height);
                 grid.push_back(bbox);
             }
         }
@@ -1349,14 +1349,14 @@ void clusterConf(const vector<BoundingBox>& dbb,const vector<float>& dconf,vecto
   }
   cconf=vector<float>(c);
   cbb=vector<BoundingBox>(c);
-  printf("Cluster indexes: ");
+  DEBLOG("Cluster indexes: ");
   BoundingBox bx;
   for (int i=0;i<c;i++){
       float cnf=0;
       int N=0,mx=0,my=0,mw=0,mh=0;
       for (int j=0;j<T.size();j++){
           if (T[j]==i){
-              printf("%d ",i);
+              DEBLOG("%d ",i);
               cnf=cnf+dconf[j];
               mx=mx+dbb[j].x;
               my=my+dbb[j].y;
@@ -1374,6 +1374,6 @@ void clusterConf(const vector<BoundingBox>& dbb,const vector<float>& dconf,vecto
           cbb[i]=bx;
       }
   }
-  printf("\n");
+  DEBLOG("\n");
 }
 

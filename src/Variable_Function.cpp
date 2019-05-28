@@ -287,8 +287,8 @@ unsigned char *inbuf = NULL;
 //void *outbuf = NULL;
 unsigned char *outbuf = NULL;
 
-#define IPU_WIDTH 720
-#define IPU_HEIGHT 576
+#define IPU_WIDTH 960
+#define IPU_HEIGHT 544
 
 //*********************************************************
 
@@ -417,6 +417,8 @@ int relDistanceY = 0;
 
 //QS跟踪器  _目标框*******************************************
 QSRECT rcInit;
+QSRECT rcInit_init;
+extern unsigned short VPU_Camera_Resolution;
 
 //**********************************************************
 
@@ -443,10 +445,20 @@ int QS_IMAGE_TRACK(int Frame_NUM)
 		KKK++;
 	}
 	//*****************************初始化跟踪器************************************
-	if(Frame_NUM == 0)						
-		qsObjectTrackStart(QS_img_8u3_rgb888, IPU_WIDTH, IPU_HEIGHT, rcInit);					
+    if(Frame_NUM == 0)
+    {
+        qsObjectTrackStop();	 //停止跟踪器
+//        usleep(40000);          //等待跟踪算法结束，保持在手动状态
+        rcInit.bottom = rcInit_init.bottom ;
+        rcInit.left = rcInit_init.left ;
+        rcInit.top = rcInit_init.top ;
+        rcInit.right = rcInit_init.right ;
+        qsObjectTrackStart(QS_img_8u3_rgb888, IPU_WIDTH, IPU_HEIGHT, rcInit);
+    }
 	if(Frame_NUM >= 1)
+    {
 		rcInit = qsObjectTrackExcute(QS_img_8u3_rgb888, IPU_WIDTH, IPU_HEIGHT);
+    }
 
 	mubiaodiushi = 0;
 
@@ -465,10 +477,25 @@ float timeuse;
 int NCC_IMAGE_TRACK(int Frame_NUM)
 {
 	int x,y;
+    int src_w;
+    int src_h;
+
+    switch (VPU_Camera_Resolution) {
+    case 544:
+        src_w = 960;
+        src_h = 544;
+        break;
+    case 576:
+        src_w = 720;
+        src_h = 576;
+        break;
+    default:
+        break;
+    }
 	gSubImageData = gSubImageData_malloc;
 	
 	gettimeofday(&tpstart, NULL);
-	
+
 	//memcpy(gSubImageData, gSubImageData_malloc, 720*576);
 	//Process_Save_image(gSubImageData, 720*576 , 1);
 	#if 1
@@ -480,19 +507,19 @@ int NCC_IMAGE_TRACK(int Frame_NUM)
 		{
 			for(y=0; y<TmpH; y++)
 			{
-				Template[x*TmpH+y] = gSubImageData[(tar_y-TmpW/2+x)*720+(tar_x-TmpW/2+y)];
+                Template[x*TmpH+y] = gSubImageData[(tar_y-TmpW/2+x)*src_w+(tar_x-TmpW/2+y)];
 			}
 		}	
 		TrackLevel(0);//判断跟踪器强度: 0	丢失目标局部重检; 1	丢失目标全屏重检; 2	更难丢失目标条件
 		TrackInit(&tar_x,&tar_y);
 		mubiaodiushi = 0;              //初始跟踪 应为跟上目标
-		printf("Begin NCC Tracking *****tar_x =%d, tar_y = %d********************\n",tar_x,tar_y);
+//        DEBLOG("Begin NCC Tracking *****tar_x =%d, tar_y = %d********************\n",tar_x,tar_y);
 	}
 
 	if(Frame_NUM >= 1)
 	{
-		gSubImageWidth  = 720;
-		gSubImageHeight = 576;
+        gSubImageWidth  = src_w;
+        gSubImageHeight = src_h;
 		mubiaodiushi = TrackTarget(gSubImageData,Template,Template2,gSubImageWidth,gSubImageHeight,TmpW,TmpH,&tar_x,&tar_y);	
 		
 	}
@@ -533,12 +560,12 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
 		fs.release();		
 		
 		tl1 = true;
-		last_gray    = Mat::zeros(576, 720, CV_8UC1);
-		current_gray = Mat::zeros(576, 720, CV_8UC1);
+        last_gray    = Mat::zeros(544, 960, CV_8UC1);
+        current_gray = Mat::zeros(544, 960, CV_8UC1);
 		bb_file = fopen("bounding_boxes.txt", "w");
 
 	
-		memcpy(last_gray.data, gSubImageData_malloc, 720*576); 
+        memcpy(last_gray.data, gSubImageData_malloc, 960*544);
 
 		Mat last_gray_resize;
 
@@ -562,13 +589,13 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
         {
             CCD_IR_Detect_y = 65;
         }
-        if(CCD_IR_Detect_x + 64 > 720)
+        if(CCD_IR_Detect_x + 64 > 960)
         {
-            CCD_IR_Detect_x = 720 - 65;
+            CCD_IR_Detect_x = 960 - 65;
         }
-        if(CCD_IR_Detect_y + 64 > 576)
+        if(CCD_IR_Detect_y + 64 > 544)
         {
-            CCD_IR_Detect_y = 576 - 65;
+            CCD_IR_Detect_y = 544 - 65;
         }
 
         //初始化时，检测中心和跟踪框中心重合，相对位置固定48
@@ -576,9 +603,9 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
         relDistanceY = 0;
 
         last_gray_resize = last_gray(Rect(Rec_Target_x - 64, Rec_Target_y - 64, 128, 128));
-        printf("init start\n");
+//        DEBLOG("init start\n");
 		init(last_gray_resize, box_b, bb_file);
-        printf("init over\n");
+//        DEBLOG("init over\n");
 
 
 //		ppp();
@@ -597,7 +624,7 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
 	// 跟踪 检测
 	if(Frame_NUM >= 1)
 	{
-		memcpy(current_gray.data, gSubImageData_malloc, 720*576); 
+        memcpy(current_gray.data, gSubImageData_malloc, 960*544);
 		BoundingBox pbox;
 		BoundingBox draw_pbox;
 		std::vector<Point2f> pts1;
@@ -636,13 +663,13 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
                     CCD_IR_Detect_y = 65;
                 }
 
-                if(CCD_IR_Detect_x + 64 > 720)
+                if(CCD_IR_Detect_x + 64 > 960)
                 {
-                    CCD_IR_Detect_x = 720 - 65;
+                    CCD_IR_Detect_x = 960 - 65;
                 }
-                if(CCD_IR_Detect_y + 64 > 576)
+                if(CCD_IR_Detect_y + 64 > 544)
                 {
-                    CCD_IR_Detect_y = 576 - 65;
+                    CCD_IR_Detect_y = 544 - 65;
                 }           
             }
 
@@ -654,6 +681,7 @@ int TLD_IMAGE_TRACK(int Frame_NUM)
         {
             relDistanceX = 0;
             relDistanceY = 0;
+            mubiaodiushi = 1;
         }
 		//memcpy(capture_buffers[capture_buf.index].start, current_gray.data, WIDTH*HEIGHT); 
 		swap(last_gray, current_gray);
