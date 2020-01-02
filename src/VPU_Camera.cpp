@@ -80,7 +80,6 @@ unsigned char VPU_Camera_Format = 2;
 unsigned char VPU_Camera_FPS = 30;
 unsigned short VPU_Camera_Resolution = 512;
 
-char Output_FileDir[256] = "./Video_File/";
 
 void VPU_Input_Init(unsigned short resolution, unsigned char VPU_Format)
 {
@@ -98,7 +97,7 @@ void VPU_Input_Init(unsigned short resolution, unsigned char VPU_Format)
 	tzset();//void tzset(void);设置时间环境变量-时区
 	tt=time(NULL);//等价于time(&tt);
 	local=localtime(&tt);
-	char current[256];
+    char current[256] = { 0 };
 	//printf("%4d年%02d月%02d日 %2d:%2d:%2d\n",local->tm_year+1900,local->tm_mon+1,local->tm_mday,local->tm_hour,local->tm_min,local->tm_sec);
     //sprintf(current, "%04d年%02d月%02d日%02d-%02d-%02d",local->tm_year+1900,local->tm_mon+1,local->tm_mday,local->tm_hour,local->tm_min,local->tm_sec);
 	sprintf(current, "%04d%02d%02d_%02d-%02d-%02d",local->tm_year+1900,local->tm_mon+1,local->tm_mday,local->tm_hour,local->tm_min,local->tm_sec);
@@ -117,6 +116,7 @@ void VPU_Input_Init(unsigned short resolution, unsigned char VPU_Format)
 		}
 
 	strcat(current,file_format);
+    char Output_FileDir[256] = "./Video_File/";
 	strcat(Output_FileDir,current);
 
 	//用char nnnn[20]定义的，用strcpy 

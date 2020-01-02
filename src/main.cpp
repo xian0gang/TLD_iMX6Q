@@ -831,7 +831,7 @@ void* socket_process(void *ptr)
 						time(&timet);
 						int readlen;
 						readlen = read(socketCon, buffer, MAX_TEXT);
-						printf("readlen:%d\n", readlen);
+//						printf("readlen:%d\n", readlen);
 						if(readlen <= 0)
 						{
 							perror("read data failed!\n");
@@ -844,15 +844,21 @@ void* socket_process(void *ptr)
 							//ret = Command_Analysis(socketCon, buffer, readlen);
 						
 						
-							printf("%d-->:\n", readlen);
+//							printf("%d-->:\n", readlen);
+                            if(buffer[0] == 0x00 && buffer[1] == 0x00)
+                            {
+                                char zero_buf[2] = { 0 };
+                                write(socketCon, zero_buf, 2);
+                            }
+
 							if(buffer[0] == 0x68)
 							{
 								printf("buffer[0]:%x\n", buffer[0]);
 							}
-							unsigned char i;
-							for(i=0; i<25; i++)
-								printf("0x=%x ", buffer[i]);
-							printf("\n");
+//							unsigned char i;
+//							for(i=0; i<25; i++)
+//								printf("0x=%x ", buffer[i]);
+//							printf("\n");
 							if((buffer[0] == 0x68) && (buffer[2] == 0x68) && (buffer[13] == 0x16))
 							{
 								int x ;
@@ -913,7 +919,7 @@ void* socket_process(void *ptr)
 													break;
 													
 											}
-											Frame_Num_Track = 0;                  //
+//											Frame_Num_Track = 0;                  //
 											printf("*************接收到新的跟踪区域*************\n");
 											mubiaodiushi = 1;
 											Track_Begin_Flag = 1;         //切换成跟踪模式
